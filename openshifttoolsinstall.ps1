@@ -1,7 +1,12 @@
+[CmdletBinding(DefaultParameterSetName='Install')]
 param(
-    [string] $Destination = "$env:USERPROFILE\Documents\OpenShiftClientTools\",
+    [string] $Destination = "$($env:USERPROFILE)\Documents\OpenShiftClientTools\",
     [switch] $Admin,
-    [switch] $Overwrite
+    [Parameter(ParameterSetName='Install')]
+    [switch] $Overwrite,
+    [Parameter( Mandatory=$true,
+                ParameterSetName='Uninstall')]
+    [switch] $Uninstall
 )
 if(-not ($Destination.EndsWith("\"))){$Destination = $Destination + "\"}
 # Expand an archive using Expand-archive when available
@@ -106,14 +111,24 @@ function Set-OCEnvPath{
 
 if($Admin){Test-OCAdminRights}
 
-Test-OCInstalled -Destination $Destination -Overwrite $Overwrite
-
-$download_path = Get-OCInstall
-
-#Extract Files, uses User path so that Admin rights are not needed
-if (-not (Test-Path -Path $Destination))
-{
-    New-Item -Path $Destination -ItemType Directory | Out-Null
+#Need to check where oc is installed if its in a known path we can remove it and the path from the environment variables.
+#If it is in an unknown path we should probably only remove the files and leave the env path
+#we could consider removing only kubectl and oc.exe will need to think about it more.
+if($Uninstall){
+#     $oc = (Get-Command "oc.exe" -ErrorAction SilentlyContinue).Source -replace "oc.exe" , ""
+#     if($oc -eq "$env:ProgramFiles\OpenShiftClientTools\"){Test-OCAdminRights}
+#     elseif($oc -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){Remove-OCInstall }
 }
-Expand-ArchiveInternal -Path $download_path -DestinationPath $Destination
-Set-OCEnvPath -Destination $Destination
+else{
+    Test-OCInstalled -Destination $Destination -Overwrite $Overwrite
+
+    $download_path = Get-OCInstall
+
+    #Extract Files, uses User path so that Admin rights are not needed
+    if (-not (Test-Path -Path $Destination))
+    {
+        New-Item -Path $Destination -ItemType Directory | Out-Null
+    }
+    Expand-ArchiveInternal -Path $download_path -DestinationPath $Destination
+    Set-OCEnvPath -Destination $Destination
+}
