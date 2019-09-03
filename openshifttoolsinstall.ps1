@@ -119,7 +119,17 @@ function Set-OCEnvPath{
     $newpath = $newpath -replace ";;",";"
     $env:Path = $newpath
 }
-
+function Remove-OCInstall{
+    [CmdletBinding()]
+    param(
+        $Destination
+    )
+    if(Test-Path $Destination){
+        if(Get-ChildItem $Destination -Recurse | Where-Object name -eq 'oc.exe'){
+            Remove-Item $Destination -Force -Recurse
+        }
+    }
+}
 #TODO NEED TO PASS DESTINATION TO TEST-OCADMINRIGHTS
 $Destination = if($Admin){Test-OCAdminRights -Destination $Destination}
 

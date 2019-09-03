@@ -2,7 +2,7 @@ $Job = Start-Job -ScriptBlock {
 
     Invoke-Command -ComputerName localhost -ScriptBlock {
     #
-        Get-ChildItem c:\scripts\*.* -Recurse | select name | Out-File 'C:\Scripts\myfile.txt'
+        Get-ChildItem c:\scripts\*.* -Recurse | Select-Object name | Out-File 'C:\Scripts\myfile.txt'
     #
     } 
 
