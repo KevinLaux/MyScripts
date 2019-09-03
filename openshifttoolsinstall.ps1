@@ -31,6 +31,10 @@ function Expand-ArchiveInternal {
     }
 }
 function Test-OCAdminRights{
+    [CmdletBinding()]
+    param(
+        $Destination
+    )
     Write-Verbose "Admin parameter was provided, testing Admin rights and setting installation location to Program Files"
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     $result = (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
@@ -41,6 +45,7 @@ function Test-OCAdminRights{
     if($Destination -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){
         $Destination = "$env:ProgramFiles\OpenShiftClientTools\"
     }
+    Return $Destination
 }
 function Test-OCInstalled{
     [CmdletBinding()]
@@ -115,15 +120,18 @@ function Set-OCEnvPath{
     $env:Path = $newpath
 }
 
-if($Admin){Test-OCAdminRights}
+#TODO NEED TO PASS DESTINATION TO TEST-OCADMINRIGHTS
+$Destination = if($Admin){Test-OCAdminRights -Destination $Destination}
 
 #Need to check where oc is installed if its in a known path we can remove it and the path from the environment variables.
 #If it is in an unknown path we should probably only remove the files and leave the env path
 #we could consider removing only kubectl and oc.exe will need to think about it more.
 if($Uninstall){
      $oc = (Get-Command "oc.exe" -ErrorAction SilentlyContinue).Source -replace "oc.exe" , ""
-     if($oc -eq "$env:ProgramFiles\OpenShiftClientTools\"){Test-OCAdminRights}
-     elseif($oc -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){Remove-OCInstall }
+     if($oc -eq "$env:ProgramFiles\OpenShiftClientTools\"){
+        Remove-OCInstall -Path $(Test-OCAdminRights -Destination $Destination)
+        }
+     elseif($oc -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){Remove-OCInstall -Path $Destination}
 }
 else{
     Test-OCInstalled -Destination $Destination -Overwrite $Overwrite
