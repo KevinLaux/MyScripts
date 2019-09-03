@@ -31,6 +31,7 @@ function Expand-ArchiveInternal {
     }
 }
 function Test-OCAdminRights{
+    Write-Verbose "Admin parameter was provided, testing Admin rights and setting installation location to Program Files"
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     $result = (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
     if (!($result)){
@@ -48,8 +49,12 @@ function Test-OCInstalled{
         $Overwrite
     )
     $oc = (Get-Command "oc.exe" -ErrorAction SilentlyContinue).Source -replace "oc.exe" , ""
+    if(!($oc)){
+        if(Test-Path $Destination){$oc = $Destination}
+    }
     if ($oc) 
     { 
+        Write-Verbose "Found OC.exe"
         if($($oc -eq $Destination) -and $Overwrite){
             Remove-Item $Destination -Recurse -Force
         }
@@ -63,6 +68,7 @@ function Test-OCInstalled{
             Exit
         }
     }
+
 }
 function Get-OCInstall{  
     #Set TLS version to 1.2 so that it is not blocked by proxy
@@ -74,7 +80,7 @@ function Get-OCInstall{
     $latestVersion = $json.tag_name
 
     #Pull the contents of the latest site and get the windows link, split the full path into array based on "/"
-    $winpath = (((Invoke-WebRequest https://github.com/openshift/origin/releases/tag/$latestVersion).Links | Where-Object href -match "windows.zip").href).split("/")
+    $winpath = (((Invoke-WebRequest "https://github.com/openshift/origin/releases/tag/$latestVersion" -UseBasicParsing).Links | Where-Object href -match "windows.zip").href).split("/")
     $url = "https://github.com/openshift/origin/releases/download/$latestVersion/$($winpath[$($winpath.Count - 1)])"
 
     $download_path = "$env:USERPROFILE\Downloads\openshift-master.zip"
@@ -115,9 +121,9 @@ if($Admin){Test-OCAdminRights}
 #If it is in an unknown path we should probably only remove the files and leave the env path
 #we could consider removing only kubectl and oc.exe will need to think about it more.
 if($Uninstall){
-#     $oc = (Get-Command "oc.exe" -ErrorAction SilentlyContinue).Source -replace "oc.exe" , ""
-#     if($oc -eq "$env:ProgramFiles\OpenShiftClientTools\"){Test-OCAdminRights}
-#     elseif($oc -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){Remove-OCInstall }
+     $oc = (Get-Command "oc.exe" -ErrorAction SilentlyContinue).Source -replace "oc.exe" , ""
+     if($oc -eq "$env:ProgramFiles\OpenShiftClientTools\"){Test-OCAdminRights}
+     elseif($oc -eq "$($env:USERPROFILE)\Documents\OpenShiftClientTools\"){Remove-OCInstall }
 }
 else{
     Test-OCInstalled -Destination $Destination -Overwrite $Overwrite
