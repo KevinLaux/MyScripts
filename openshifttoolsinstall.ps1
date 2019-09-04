@@ -109,14 +109,14 @@ function Set-OCEnvPath{
     if(!(Get-Command "oc.exe" -ErrorAction SilentlyContinue)){
         #Set the Environment Variable path Permanently, only installed per user
         $oldpath = (Get-ItemProperty -Path 'HKCU:\Environment' -Name PATH).path
-        if($oldpath -notmatch $Path){
+        if($oldpath -notlike $Path){
             $newpath = "$oldpath;$Path"
             $newpath = $newpath -replace ";;",";"
             Set-ItemProperty -Path 'HKCU:\Environment' -Name PATH -Value $newPath
         }
         #Set the Environment Variable path temporarily needed until restart.
         $oldpath = $env:Path
-        if($oldpath -notmatch $Path){
+        if($oldpath -notlike $Path){
             $newpath = "$oldpath;$Path"
             $newpath = $newpath -replace ";;",";"
             $env:Path = $newpath
