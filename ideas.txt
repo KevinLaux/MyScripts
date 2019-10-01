@@ -1,2 +1,4 @@
-Comparisons
+Comparisons -Match vs -Like vs -Contains
 Debugging in VSCode
+Write-Host vs Write-Output vs Out-Host
+Default Out
