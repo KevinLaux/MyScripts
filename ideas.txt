@@ -2,3 +2,6 @@ Comparisons -Match vs -Like vs -Contains
 Debugging in VSCode
 Write-Host vs Write-Output vs Out-Host
 Default Out
+universal invoke command
+show command
+pester test for ps remoting being enabled?
