@@ -5,3 +5,4 @@ Default Out
 universal invoke command
 show command
 pester test for ps remoting being enabled?
+Pete and Repeat PowerShell script
